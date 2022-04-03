@@ -20,7 +20,7 @@ class Table extends Array {
       this.options.style.head = [];
     }
 
-    let cells = tableLayout.makeTableLayout(array);
+    let cells = tableLayout.makeTableLayout(array, this.options);
 
     cells.forEach(function (row) {
       row.forEach(function (cell) {

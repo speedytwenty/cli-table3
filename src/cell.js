@@ -57,24 +57,27 @@ class Cell {
     this.head = style.head || tableStyle.head;
     this.border = style.border || tableStyle.border;
 
-    let fixedWidth = tableOptions.colWidths[this.x];
-    if ((tableOptions.wordWrap || tableOptions.textWrap) && fixedWidth) {
-      fixedWidth -= this.paddingLeft + this.paddingRight;
+    this.fixedWidth = tableOptions.colWidths[this.x];
+    this.lines = this.computeLines(tableOptions);
+
+    this.desiredWidth = utils.strlen(this.content) + this.paddingLeft + this.paddingRight;
+    this.desiredHeight = this.lines.length;
+  }
+
+  computeLines(tableOptions) {
+    if (this.fixedWidth && (tableOptions.wordWrap || tableOptions.textWrap)) {
+      this.fixedWidth -= this.paddingLeft + this.paddingRight;
       if (this.colSpan) {
         let i = 1;
         while (i < this.colSpan) {
-          fixedWidth += tableOptions.colWidths[this.x + i];
+          this.fixedWidth += tableOptions.colWidths[this.x + i];
           i++;
         }
       }
       const { wrapOnWordBoundary = true } = tableOptions;
-      this.lines = utils.colorizeLines(utils.wordWrap(fixedWidth, this.content, wrapOnWordBoundary));
-    } else {
-      this.lines = utils.colorizeLines(this.content.split('\n'));
+      return utils.colorizeLines(utils.wordWrap(this.fixedWidth, this.content, wrapOnWordBoundary));
     }
-
-    this.desiredWidth = utils.strlen(this.content) + this.paddingLeft + this.paddingRight;
-    this.desiredHeight = this.lines.length;
+    return utils.colorizeLines(this.content.split('\n'));
   }
 
   /**
@@ -372,5 +375,15 @@ let CHAR_NAMES = [
   'middle',
 ];
 module.exports = Cell;
+module.exports.Cell = Cell;
 module.exports.ColSpanCell = ColSpanCell;
 module.exports.RowSpanCell = RowSpanCell;
+
+module.exports.factory = (mixedCell) => {
+  if (mixedCell instanceof Cell) return mixedCell;
+  let cellOpt = mixedCell;
+  if (Object.prototype.toString.call(mixedCell) !== '[object Object]') {
+    cellOpt = { content: mixedCell };
+  }
+  return new Cell(cellOpt);
+};

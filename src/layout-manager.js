@@ -1,5 +1,4 @@
-const Cell = require('./cell');
-const { ColSpanCell, RowSpanCell } = Cell;
+const { Cell, ColSpanCell, RowSpanCell, factory: defaultCellFactory } = require('./cell');
 
 (function () {
   function next(alloc, col) {
@@ -150,7 +149,7 @@ const { ColSpanCell, RowSpanCell } = Cell;
     }
   }
 
-  function generateCells(rows) {
+  function generateCells(rows, cellFactory) {
     return rows.map(function (row) {
       if (!Array.isArray(row)) {
         let key = Object.keys(row)[0];
@@ -162,14 +161,12 @@ const { ColSpanCell, RowSpanCell } = Cell;
           row = [key, row];
         }
       }
-      return row.map(function (cell) {
-        return new Cell(cell);
-      });
+      return row.map(cellFactory || defaultCellFactory);
     });
   }
 
-  function makeTableLayout(rows) {
-    let cellRows = generateCells(rows);
+  function makeTableLayout(rows, tableOptions = {}) {
+    let cellRows = generateCells(rows, tableOptions.cellFactory);
     layoutTable(cellRows);
     fillInTable(cellRows);
     addRowSpanCells(cellRows);
